@@ -7,8 +7,10 @@ module Snapshot
       screens_path = SnapshotConfig.shared_instance.screenshots_path
 
       @data = {}
+      current_dir = Dir.pwd
 
-      Dir["#{screens_path}/*"].sort.each do |language_path|
+      Dir.chdir(screens_path)
+      Dir["*"].sort.each do |language_path|
         language = File.basename(language_path)
         Dir[File.join(language_path, '*')].sort.each do |screenshot|
 
@@ -19,8 +21,7 @@ module Snapshot
               @data[language] ||= {}
               @data[language][output_name] ||= []
 
-              resulting_path = File.join('.', language, File.basename(screenshot))
-              @data[language][output_name] << resulting_path
+              @data[language][output_name] << screenshot
               break # to not include iPhone 6 and 6 Plus (name is contained in the other name)
             end
           end
@@ -30,10 +31,11 @@ module Snapshot
       html_path = File.join(lib_path, "snapshot/page.html.erb")
       html = ERB.new(File.read(html_path)).result(binding) # http://www.rrn.dk/rubys-erb-templating-system
 
-      export_path = "#{screens_path}/screenshots.html"
+      export_path = "./screenshots.html"
       File.write(export_path, html)
 
       Helper.log.info "Successfully created HTML file with an overview of all the screenshots: '#{File.expand_path(export_path)}'".green
+      Dir.chdir(current_dir)
     end
 
     private
